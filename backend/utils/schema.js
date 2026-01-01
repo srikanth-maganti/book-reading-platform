@@ -1,5 +1,5 @@
 
-const Joi = require('joi');
+import Joi from 'joi';
 
 const bookschema=Joi.object({
     book:Joi.object({
@@ -26,4 +26,4 @@ const bookschema=Joi.object({
         Description:Joi.string()
     }).required(),
 })
-module.exports=bookschema;
+export default  bookschema;

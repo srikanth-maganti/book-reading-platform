@@ -10,13 +10,14 @@ function Home()
   const [images, setImages] = useState([]);
   useEffect(()=>{
         const fetchdata=async()=>{
-        const response=await fetch("http://localhost:3000/home/trending");
+        const response=await fetch("http://localhost:3000/books/trending");
 
         if(response.ok)
         {
             const data=await response.json();
             settrendingbooks(data);
         }
+        
     }
     fetchdata();
   })

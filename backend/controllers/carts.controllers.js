@@ -1,4 +1,6 @@
 import Cart from "../models/cart.js"
+import {ApiError} from "../utils/api_error.js";
+import Book from "../models/book.js"
 
 export const getcartitem=async (req, res) => {
   const cart = await Cart.findOne({ userId: req.user_id }).populate("items.book"); // Optional: populate book details
@@ -8,7 +10,7 @@ export const getcartitem=async (req, res) => {
     return res.json({items:[]});
   }
 
-  res.json(cart);
+  res.status(200).json({items:cart.items});
 };
 
 export const createcartitem=async (req, res) => {
@@ -17,25 +19,26 @@ export const createcartitem=async (req, res) => {
     
     // Check if book exists
     const bookData = await Book.findById(id);
+    
     if (!bookData) {
-        console.log("book not found");
-        return res.status(404).send("Book not found");
+         throw new ApiError(404,"Book not found");
     }
-
+    
     // Check if cart exists for the user
     let userCart = await Cart.findOne({ userId: user_id });
-
+    
     if (!userCart) {
         // If cart doesn't exist, create a new one
+        
         const newCart = new Cart({
             userId: user_id,
             items: [{ book: id, count: 1 }]
         });
-        await newCart.save();
-        
-        return res.send("Cart created and book added");
+       const res= await newCart.save();
+       
+        return res.status(200).json({message:"Cart created and book added",success:true});
     }
-
+    
     // If cart exists, check if book is already in the cart
     const itemIndex = userCart.items.findIndex(item => item.book.toString() === id);
 
@@ -49,7 +52,7 @@ export const createcartitem=async (req, res) => {
 
     await userCart.save();
     
-    res.send("Book added updated in cart successfully");
+    res.status(200).json({message:"Book added updated in cart successfully",success:true});
 };
 
 export const modifycartitem=async (req, res) => {
@@ -58,7 +61,8 @@ export const modifycartitem=async (req, res) => {
     const userId = req.user_id;
 
     const incValue = action === "increment" ? 1 : action === "decrement" ? -1 : null;
-    if (incValue === null) return res.status(400).send("Invalid action");
+    if (incValue === null)
+        throw new ApiError(400,"Invalid action");
 
     const result = await Cart.updateOne(
         { userId, "items.book": bookId },
@@ -66,10 +70,10 @@ export const modifycartitem=async (req, res) => {
     );
 
     if (result.modifiedCount === 0) {
-        return res.status(404).send("Book not found in cart");
+        throw new ApiError(404,"Book not found in cart");
     }
 
-    res.send(`Book count ${action}ed successfully`);
+    res.status(200).json({message:`Book count ${action}ed successfully`,success:true});
 };
 
 export const deletecartitem=async (req, res) => {
@@ -82,8 +86,8 @@ export const deletecartitem=async (req, res) => {
     );
 
     if (result.modifiedCount === 0) {
-        return res.status(404).send("Book not found in cart");
+        throw new ApiError(400,"Book not found in cart");
     }
 
-    res.send("Book removed from cart successfully");
+    res.status(200).json({message:"Book removed from cart successfully",success:true});
 }

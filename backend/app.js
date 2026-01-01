@@ -1,23 +1,35 @@
 import express from "express"
 import dotenv from "dotenv"
 import cors from "cors"
-const jwt=require("jsonwebtoken");
-import {db_connection} from "utils/db.js"
-import {bookrouter} from   "./routes/books.routes.js"
-import {cartrouter} from "./routes/carts.routes.js"
-import {userrouter} from "./routes/users.routes.js"
+import jwt from "jsonwebtoken"
+import methodoverride from "method-override";
+import {db_connection} from "./db/db.js"
+import bookrouter from   "./routes/books.routes.js"
+import cartrouter from "./routes/carts.routes.js"
+import userrouter from "./routes/users.routes.js"
 
 
 
-const methodoverride=require("method-override");
-const ExpressError=require("./ExpressError.js");
-const { OAuth2Client } = require("google-auth-library");
-const User=require("./models/user.js");
+
+import {ApiError} from "./utils/api_error.js";
+import { OAuth2Client }  from "google-auth-library";
+import  User from "./models/user.js";
 dotenv.config();
 
 
 const app=express();
-db_connection();
+db_connection()
+.then(()=>{
+        console.log("connected to database");
+        //server running
+        app.listen(process.env.PORT,()=>{
+                console.log("server started listening on port:",process.env.PORT);
+        })  
+    })
+    .catch((err)=>{
+        console.log(err);
+        process.exit(1);
+    })
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -25,7 +37,7 @@ app.use(methodoverride('_method'));
 app.use(
   cors({
     origin: process.env.BASE_URL, // Allow only your frontend
-    methods: "GET, POST, PUT, DELETE",
+    methods: "GET, POST, PUT,PATCH, DELETE",
     allowedHeaders: ["Content-Type","Authorization"],
   })
 );
@@ -55,7 +67,7 @@ app.post("/api/auth/google", async (req, res) => {
     // Check if user exists
     let user = await User.findOne({ email });
     if (!user) {
-      user = await User.create({ fullname:name,email:email });
+      user = await User.create({ name:name,email:email });
     }
 
     // Create JWT token for session
@@ -80,33 +92,12 @@ app.post("/api/auth/google", async (req, res) => {
 
 //Error handling
 app.all("*",(req,res,next)=>{
-    next( new ExpressError(400,"Page not found")) ;
-})
-
-
- 
-app.use((err,req,res,next)=>{
-   
-    if(err.name=="ValidationError")
-    {   console.log(err);
-        err.message="Validataion Error";
-    }
-    if(err.name=="CastError")
-    {
-        err.message=" Invalid Book Id";
-    }
-    next(err);
+    next( new ApiError(400,"Page not found")) ;
 })
 app.use((err,req,res,next)=>{
-    
-    let{status=500,message="Page not found"}=err;
-    
-    res.send(message);
+    let{status=500,message="UnKnown Error"}=err;
+    res.status(status).json({message,success:false});
 })
 
 
 
-//server running
-app.listen(process.env.PORT,()=>{
-    console.log("server started listening on port:",process.env.PORT);
-})

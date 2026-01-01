@@ -1,9 +1,9 @@
 import Book from "../models/book.js"
+import {ApiError} from "../utils/api_error.js";
 
 export const allbooks=async (req, res) => {
     const { category, search } = req.query;
-    let data;
-    
+    let data=null;
     if (search) {
         data = await Book.find({
             $or: [
@@ -19,10 +19,11 @@ export const allbooks=async (req, res) => {
     }
 
     if (!data || data.length === 0) {
-        return res.status(404).json({ message: "No books found" });
+        throw new ApiError(404,"No Books Found");
     }
+    
 
-    res.json(data);
+    res.status(200).json(data);
 }
 
 export const showbook=async(req,res)=>{
@@ -31,18 +32,18 @@ export const showbook=async(req,res)=>{
     
     if(!data)
     {
-        throw new ExpressError(400,"Book Not Found");
+        throw new ApiError(400,"Book Not Found");
     }
     
-    res.json(data);
+    res.status(200).json(data);
 }
 
-export const trendingbooks=(req,res)=>{
-    res.send("trendng");
+export const trendingbooks=async(req,res)=>{
+    res.status(200).json([]);
 }
 
 export const addbook=async(req,res)=>{
     let newbook=new Book(req.body.book);
-    newbook.save();
-    res.redirect("/books");
+    await newbook.save();
+    res.status(200).json({message:"book added successfully",success:true})
 }

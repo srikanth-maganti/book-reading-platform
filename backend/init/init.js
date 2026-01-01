@@ -1,6 +1,6 @@
-const mongoose=require("mongoose");
-const initdata=require("./data.js");
-const books=require("../models/book.js");
+import mongoose  from "mongoose";
+import  initdata from "./data.js";
+import  books from "../models/book.js";
 
 
 async function main()

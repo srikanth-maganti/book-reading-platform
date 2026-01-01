@@ -182,7 +182,9 @@
 }
 
 .empty-cart {
-    text-align: center;
+    display: flex;
+    flex-direction:column ;
+    align-items: center;
     padding: 50px 20px;
     
 }

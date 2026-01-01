@@ -72,6 +72,7 @@ function Show() {
             }
             
             })
+            
              if(!response.ok) throw new Error("Unable to add to cart");
              console.log("added to cart");
         }
@@ -92,6 +93,7 @@ function Show() {
             }
             
             })
+            
              if(!response.ok) throw new Error("Unable to add to cart");
             
              navigate("/cart")

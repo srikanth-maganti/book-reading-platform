@@ -1,5 +1,6 @@
 
-const mongoose=require("mongoose");
+import mongoose from "mongoose";
+
 
 const sellerSchema=new mongoose.Schema({
     businessName:{
@@ -48,4 +49,4 @@ const sellerSchema=new mongoose.Schema({
 })
 
 const Seller=mongoose.model("sellers",sellerSchema);
-module.exports=Seller;
+export default Seller;

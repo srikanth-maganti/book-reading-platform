@@ -1,6 +1,6 @@
 import React, { useState, useEffect,useContext } from 'react';
 import { useNavigate,Link } from 'react-router-dom';
-import { AuthContext } from '../AuthContext.jsx';
+import { AuthContext } from '../utils/AuthContext.jsx';
 import CartItem from "../components/CartItem.jsx";
 import axios from 'axios';
 
@@ -33,13 +33,14 @@ function Cart() {
             }
             
             const result=await response.json();
-            console.log(result);
+            console.log(result.items)
             setItems(result.items);
         }
         fetchdata();
     },[])
 
-     const handleincrement = async (itemId,bookId) => {
+
+const handleincrement = async (itemId,bookId) => {
     try {
       const updated = items.map((item) => {
         if (item._id === itemId) {
@@ -98,25 +99,26 @@ function Cart() {
     console.error("Error removing item:", err);
   }
 };
-    if(items || items.length==0)
-    {  
+if(items.length==0)
+{  
         return (
             <div className="empty-cart">
                 <i className="fas fa-shopping-cart"></i>
                 <h2>Your cart is empty</h2>
                 <p>Looks like you haven't added any books to your cart yet.</p>
-                <div >
-                    <img src="/images/OIP.jpeg" alt="empty cart" className="empty-cart-image" />
-                </div>
+                <span>
+                  <img src="/images/OIP.jpeg" alt="empty cart" className="empty-cart-image" />
+                </span>
                 
+
                 <Link to="/books" className="btn btn-primary mt-3">
                     Start Shopping
                 </Link>
             </div>
         )
 
-    }
-    if(items.length>0)
+}
+if(items.length>0)
     {    let total=items.reduce((a,b)=>a+b.book.Price*b.count,0);
          return ( 
        

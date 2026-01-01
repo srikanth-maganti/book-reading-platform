@@ -4,8 +4,8 @@ import styled from 'styled-components';
 const Radio = () => {
   return (
     <StyledWrapper>
-      <div className="container">
-        <div className="tabs">
+      <div className="container w-100">
+        <div className="tabs w-100">
           <input type="radio" id="radio-1" name="tabs" defaultChecked />
           <label className="tab" htmlFor="radio-1">Hello<span className="notification">2</span></label>
           <input type="radio" id="radio-2" name="tabs" />

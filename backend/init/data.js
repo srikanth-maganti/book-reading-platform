@@ -90,15 +90,14 @@
 
 // module.exports = books;
 
-const { faker } = require('@faker-js/faker');
 
-
+import { faker } from '@faker-js/faker';
 const books=[];
 const generateDummyBooks = async (num) => {
     for (let i = 0; i < num; i++) {
       books.push({
         Title: faker.lorem.words(),
-        Author: faker.person.fullName(),
+        Author: faker.internet.username(),
         Image: faker.image.avatar(),
         Price: faker.commerce.price(),
         Quantity: faker.number.int({ min: 1, max: 100 }),
@@ -118,4 +117,4 @@ const generateDummyBooks = async (num) => {
 };
 
 generateDummyBooks(50); // Generate 50 dummy books
-module.exports=books;
+export default books;

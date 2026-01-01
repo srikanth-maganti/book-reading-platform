@@ -2,9 +2,10 @@
   "name": "buy a book",
   "version": "1.0.0",
   "main": "app.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":"nodemon app.js"
+    "dev": "nodemon app.js"
   },
   "author": "srikanth",
   "license": "ISC",
@@ -13,6 +14,7 @@
     "@faker-js/faker": "^9.3.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "ejs-mate": "^4.0.0",
@@ -20,7 +22,11 @@
     "google-auth-library": "^9.15.1",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
+    "mailgen": "^2.0.29",
     "method-override": "^3.0.0",
-    "mongoose": "^8.4.5"
+    "mongoose": "^8.4.5",
+    "nodemailer": "^7.0.3",
+    "punycode": "^2.3.1",
+    "resend": "^4.6.0"
   }
 }
