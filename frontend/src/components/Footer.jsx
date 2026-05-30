@@ -29,7 +29,7 @@ export default function Footer() {
                             <span className="font-display" style={{ fontSize: '1.1rem', fontWeight: 700 }}>PageTurn</span>
                         </div>
                         <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
-                            Read 70,000+ free classic books from Project Gutenberg. Upload your PDFs, take notes, and discover your next favorite read.
+                            Read 33,000+ free classic books from Project Gutenberg. Take notes, and discover your next favorite read.
                         </p>
                     </div>
 

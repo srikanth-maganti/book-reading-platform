@@ -8,8 +8,7 @@ RUN npm install
 
 COPY . .
 
-RUN mkdir -p uploads
-
+# App port
 EXPOSE 3000
 
 CMD ["npm", "run", "dev"]

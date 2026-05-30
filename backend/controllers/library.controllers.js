@@ -43,19 +43,29 @@ export const addToLibrary = async (req, res) => {
             return res.json({ success: true, book: existing, message: "Book already in library" });
         }
 
-        const book = await UserBook.create({
-            userId: req.user.userId,
-            bookId,
-            bookTitle,
-            bookAuthor: bookAuthor || 'Unknown',
-            bookCover: bookCover || '',
-            subjects: subjects || [],
-            source
-        });
+        let book;
+        try {
+            book = await UserBook.create({
+                userId: req.user.userId,
+                bookId,
+                bookTitle,
+                bookAuthor: bookAuthor || 'Unknown',
+                bookCover: bookCover || '',
+                subjects: subjects || [],
+                source
+            });
+        } catch (createErr) {
+            if (createErr.code === 11000) {
+                // Race condition: book was inserted by another request between our check and create
+                const existingBook = await UserBook.findOne({ userId: req.user.userId, bookId: bookId });
+                return res.json({ success: true, book: existingBook, message: "Book already in library" });
+            }
+            throw createErr;
+        }
 
         res.status(201).json({ success: true, book });
     } catch (err) {
-        console.error(err);
+        console.error("Add to library error:", err.message);
         res.status(500).json({ success: false, message: "Failed to add to library" });
     }
 };

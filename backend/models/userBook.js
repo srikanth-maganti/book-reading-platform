@@ -8,7 +8,7 @@ const UserBookSchema = new mongoose.Schema({
         index: true
     },
     bookId: {
-        type: String, // Gutendex book ID or 'upload-<mongoId>'
+        type: String, // Gutendex book ID
         required: true
     },
     bookTitle: {
@@ -28,7 +28,7 @@ const UserBookSchema = new mongoose.Schema({
     }],
     source: {
         type: String,
-        enum: ['gutendex', 'upload'],
+        enum: ['gutendex'],
         required: true
     },
     progress: {

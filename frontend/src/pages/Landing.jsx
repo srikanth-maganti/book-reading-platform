@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { BookOpen, Sparkles, Upload, StickyNote, ArrowRight, TrendingUp } from 'lucide-react';
+import { BookOpen, Sparkles, StickyNote, ArrowRight, TrendingUp } from 'lucide-react';
 import { booksAPI } from '../utils/api.js';
 import BookCard from '../components/BookCard.jsx';
 
@@ -20,7 +20,7 @@ export default function Landing() {
     const features = [
         {
             icon: BookOpen,
-            title: '70,000+ Free Books',
+            title: '33,000+ Free Books',
             description: 'Access a massive library of classic literature from Project Gutenberg — completely free.',
             color: 'var(--color-accent-primary)'
         },
@@ -30,12 +30,7 @@ export default function Landing() {
             description: 'Highlight passages and take notes while reading. All synced to your account.',
             color: 'var(--color-accent-emerald)'
         },
-        {
-            icon: Upload,
-            title: 'Upload Your PDFs',
-            description: 'Bring your own books. Upload PDFs and read them in our interactive reader.',
-            color: 'var(--color-accent-cool)'
-        },
+
         {
             icon: Sparkles,
             title: 'Smart Recommendations',
@@ -80,7 +75,7 @@ export default function Landing() {
                             marginBottom: '1.5rem'
                         }}>
                             <TrendingUp size={14} color="var(--color-accent-primary)" />
-                            70,000+ free books from Project Gutenberg
+                            33,000+ free books from Project Gutenberg
                         </div>
 
                         <h1 className="font-display" style={{

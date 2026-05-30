@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useContext, useState } from 'react';
 import { AuthContext } from '../utils/AuthContext.jsx';
-import { Search, BookOpen, Library, Sparkles, Upload, Menu, X, LogOut, User } from 'lucide-react';
+import { Search, BookOpen, Library, Sparkles, Menu, X, LogOut, User } from 'lucide-react';
 
 export default function Navbar() {
     const { isAuthenticated, user, logout } = useContext(AuthContext);

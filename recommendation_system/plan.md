@@ -15,6 +15,26 @@ This document outlines the architecture and steps required to build a Machine Le
   - `pandas` (for data manipulation)
 - **Database Driver**: `pymongo` (to read directly from the shared MongoDB instance)
 
+## Data Availability
+Before implementing the model, it is crucial to understand what data is available in MongoDB to train or compute recommendations, and what data we must work around.
+
+### What We HAVE
+1. **Book Metadata (`books` collection)**: 
+   - `title` and `author`
+   - `subjects`: An array of highly specific Project Gutenberg categories (e.g., "Science Fiction", "French literature", "Historical fiction"). This is our most valuable feature for Content-Based Filtering.
+   - `downloadCount`: Useful as a proxy for "popularity" when generating fallback/trending recommendations.
+2. **User Interaction (`userbooks` collection)**:
+   - `bookId` and `userId` mapping (who is reading what).
+   - `progress`: A percentage (0-100) indicating how far the user has read.
+   - `lastReadAt`: A timestamp to determine recent interests.
+3. **User Engagement (`notes` collection)**:
+   - The existence of notes on a book indicates active engagement and can be used to boost a book's implicit rating.
+
+### What We DO NOT HAVE
+1. **Explicit 5-Star Ratings**: We do not have a rating system. We must use **Implicit Feedback**: a book with `progress > 50%` or multiple notes should be mathematically treated as a "Like", while a book abandoned at `progress < 5%` should be treated as neutral or a "Dislike".
+2. **Rich Book Summaries (Blurbs)**: Project Gutenberg metadata does not include back-cover descriptions or synopses. We cannot do deep semantic NLP on book plots. We must rely entirely on the `subjects` array and `title` for TF-IDF vectorization.
+3. **User Demographic Data**: We do not ask for age, location, or preferences during signup, so demographic-based collaborative filtering is impossible. We must rely purely on reading behavior.
+
 ## Step-by-Step Implementation
 
 ### Step 1: Infrastructure Setup

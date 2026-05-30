@@ -8,7 +8,7 @@ const NoteSchema = new mongoose.Schema({
         index: true
     },
     bookId: {
-        type: String, // Gutendex book ID or uploaded PDF ID
+        type: String, // Gutendex book ID
         required: true,
         index: true
     },

@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Library as LibraryIcon, BookOpen, Upload, Clock, Trash2, Loader2 } from 'lucide-react';
+import { Library as LibraryIcon, BookOpen, Clock, Trash2, Loader2 } from 'lucide-react';
 import { libraryAPI } from '../utils/api.js';
 import { AuthContext } from '../utils/AuthContext.jsx';
 
