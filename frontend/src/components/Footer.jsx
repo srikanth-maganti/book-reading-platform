@@ -1,61 +1,91 @@
-import React from "react"
-function Footer()
-{
-    return(
-        
-<footer className="footer text-center border-top mt-auto">
-    <div className="footer-sections">
-       
-        <div className="section">
-            <h4>About Us</h4>
-            <ul>
-                <li><a href="#">Our Story</a></li>
-                <li><a href="#">How It Works</a></li>
-                <li><a href="#">Careers</a></li>
-                <li><a href="#">Contact Us</a></li>
-            </ul>
-        </div>
+import { BookOpen, Github, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-        
-       
+export default function Footer() {
+    return (
+        <footer style={{
+            borderTop: '1px solid var(--color-border-subtle)',
+            padding: '3rem 0 2rem',
+            marginTop: 'auto',
+            background: 'linear-gradient(to top, #0a0a0f, transparent)'
+        }}>
+            <div className="container">
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '2rem',
+                    marginBottom: '2rem'
+                }}>
+                    {/* Brand */}
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <div style={{
+                                width: '32px', height: '32px', borderRadius: 'var(--radius-md)',
+                                background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <BookOpen size={18} color="#0a0a0f" />
+                            </div>
+                            <span className="font-display" style={{ fontSize: '1.1rem', fontWeight: 700 }}>PageTurn</span>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
+                            Read 70,000+ free classic books from Project Gutenberg. Upload your PDFs, take notes, and discover your next favorite read.
+                        </p>
+                    </div>
 
-       
-        <div className="section">
-            <h4>Help</h4>
-            <ul>
-                <li><a href="#">Customer Support</a></li>
-                <li><a href="#">Shipping Info</a></li>
-                <li><a href="#">Return Policy</a></li>
-                <li><a href="#">FAQs</a></li>
-            </ul>
-        </div>
+                    {/* Quick Links */}
+                    <div>
+                        <h4 style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                            Explore
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <Link to="/browse" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'none', transition: 'color 0.2s' }}>Browse Books</Link>
+                            <Link to="/browse?topic=fiction" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'none' }}>Fiction</Link>
+                            <Link to="/browse?topic=science" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'none' }}>Science</Link>
+                            <Link to="/browse?topic=history" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'none' }}>History</Link>
+                        </div>
+                    </div>
 
-        
-        <div className="section">
-            <h4>Follow Us</h4>
-            <div className="social-icons">
-                <a href="#" aria-label="Facebook">&#x1F4F7;</a>
-                <a href="#" aria-label="Twitter">&#x1F426;</a>
-                <a href="#" aria-label="Instagram">&#x1F33C;</a>
-                <a href="#" aria-label="LinkedIn">&#x1F465;</a>
+                    {/* Platform */}
+                    <div>
+                        <h4 style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                            Platform
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <Link to="/library" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'none' }}>My Library</Link>
+                            <Link to="/recommendations" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'none' }}>Recommendations</Link>
+                        </div>
+                    </div>
+
+                    {/* Credits */}
+                    <div>
+                        <h4 style={{ fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                            Powered By
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <a href="https://www.gutenberg.org/" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'none' }}>Project Gutenberg</a>
+                            <a href="https://gutendex.com/" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', textDecoration: 'none' }}>Gutendex API</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{
+                    borderTop: '1px solid var(--color-border-subtle)',
+                    paddingTop: '1.5rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem'
+                }}>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                        © {new Date().getFullYear()} PageTurn. All books sourced from Project Gutenberg (public domain).
+                    </p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        Built with <Heart size={12} color="var(--color-accent-warm)" fill="var(--color-accent-warm)" /> by Srikanth
+                    </p>
+                </div>
             </div>
-        </div>
-
-       
-        <div className="section newsletter">
-            <h4>Stay Updated</h4>
-            <p>Subscribe to our newsletter for latest updates and offers:</p>
-            <input type="email" placeholder="Enter your email"/>
-            <button>Subscribe</button>
-        </div>
-    </div>
-
-    <div className="copyright">
-        &copy; 2024 Second-Hand Book Bazaar. All rights reserved.
-    </div>
-</footer>
-
-    )
+        </footer>
+    );
 }
-
-export default Footer

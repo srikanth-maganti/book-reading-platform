@@ -1,228 +1,194 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useContext } from 'react';
-import { AuthContext } from '../utils/AuthContext';
-import { jwtDecode } from 'jwt-decode';
+import { useState, useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, Eye, EyeOff, BookOpen, Loader2 } from 'lucide-react';
+import { authAPI } from '../utils/api.js';
+import { AuthContext } from '../utils/AuthContext.jsx';
 import { GoogleLogin } from '@react-oauth/google';
-import { X, Mail, Lock, Eye, EyeOff, Sparkles, Star } from 'lucide-react';
 
-function Login({ isOpen, onClose }) {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+export default function Login() {
+    const { login } = useContext(AuthContext);
     const navigate = useNavigate();
-    const { isauthenticated, setisauthenticated } = useContext(AuthContext);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setIsLoading(true);
+        setLoading(true);
 
         try {
-            const res = await fetch('http://localhost:3000/users/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email, password }),
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem("token", data.token);
-                setisauthenticated(true);
-                onClose(); // Close modal on successful login
-                navigate('/books');
-            } else {
-                setError('Login failed');
-            }
+            const res = await authAPI.login({ email, password });
+            login(res.data.token, res.data.user);
+            navigate('/browse');
         } catch (err) {
-            setError("Something went wrong");
+            setError(err.response?.data?.message || 'Login failed. Please try again.');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
-    const handleLoginSuccess = async (credentialResponse) => {
-        const token = credentialResponse.credential;
-        const userInfo = jwtDecode(token);
-        console.log("Google user:", userInfo);
-
-        // Send token to backend
-        const res = await fetch(`http://localhost:3000/api/auth/google`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token }),
-        });
-
-        const data = await res.json();
-        localStorage.setItem("token", data.token);
-        setisauthenticated(true);
-        onClose(); // Close modal on successful login
-        navigate("/books");
-    };
-
-    const handleForgotPassword = async () => {
-        const res = await fetch(`http://localhost:3000/users/forgotpassword`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: "magantisatyanarayana100@gmail.com" }),
-        });
-        if (!res.ok) {
-            console.log("verification token sent failed");
+    const handleGoogleSuccess = async (credentialResponse) => {
+        try {
+            setError('');
+            setLoading(true);
+            const res = await authAPI.googleAuth(credentialResponse.credential);
+            login(res.data.token, res.data.user);
+            navigate('/browse');
+        } catch (err) {
+            setError('Google login failed. Please try again.');
+        } finally {
+            setLoading(false);
         }
-        console.log("verification sent successfully");
     };
-
-    const handleModalClick = (e) => {
-        e.stopPropagation();
-    };
-
-    if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0  bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-            <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 relative overflow-hidden" onClick={handleModalClick}>
-                {/* Floating decorative elements */}
-                <div className="absolute top-4 right-16 w-6 h-6 bg-amber-200 rounded-full opacity-30 animate-bounce"></div>
-                <div className="absolute bottom-8 left-8 w-4 h-4 bg-rose-200 rounded-full opacity-40 animate-pulse"></div>
-                <div className="absolute top-12 left-12 w-3 h-3 bg-orange-200 rounded-full opacity-50 animate-bounce delay-300"></div>
-                
-                {/* Header */}
-                <div className="relative p-8 pb-6">
-                    <button 
-                        onClick={onClose}
-                        className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/20 transition-colors duration-200"
-                    >
-                        <X size={20} className="text-gray-600" />
-                    </button>
-                    <div className="text-center">
-                        <div className="mb-4">
-                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-800 rounded-full text-sm font-medium">
-                                <Sparkles className="w-4 h-4" />
-                                Welcome Back
-                            </span>
+        <div style={{
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '2rem',
+            position: 'relative'
+        }}>
+            <div className="ambient-bg" />
+
+            <div className="glass-card animate-fade-in" style={{
+                width: '100%',
+                maxWidth: '420px',
+                padding: '2.5rem'
+            }}>
+                {/* Logo */}
+                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                    <Link to="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div style={{
+                            width: '44px', height: '44px', borderRadius: 'var(--radius-md)',
+                            background: 'linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary))',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}>
+                            <BookOpen size={24} color="#0a0a0f" />
                         </div>
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 bg-clip-text text-transparent mb-2">Login</h2>
-                        <p className="text-gray-600">Sign in to your Book Bazaar account</p>
+                    </Link>
+                    <h1 className="font-display" style={{ fontSize: '1.75rem', fontWeight: 700, marginTop: '1rem' }}>
+                        Welcome back
+                    </h1>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginTop: '0.35rem' }}>
+                        Sign in to continue reading
+                    </p>
+                </div>
+
+                {/* Error */}
+                {error && (
+                    <div style={{
+                        padding: '0.75rem 1rem',
+                        background: '#ef444420',
+                        border: '1px solid #ef444440',
+                        borderRadius: 'var(--radius-md)',
+                        marginBottom: '1.25rem',
+                        fontSize: '0.85rem',
+                        color: 'var(--color-accent-warm)'
+                    }}>
+                        {error}
                     </div>
+                )}
+
+                {/* Google Login */}
+                <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+                    <GoogleLogin
+                        onSuccess={handleGoogleSuccess}
+                        onError={() => setError('Google login failed')}
+                        theme="filled_black"
+                        shape="pill"
+                        size="large"
+                        width="100%"
+                    />
+                </div>
+
+                {/* Divider */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem'
+                }}>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--color-border-subtle)' }} />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>or</span>
+                    <div style={{ flex: 1, height: '1px', background: 'var(--color-border-subtle)' }} />
                 </div>
 
                 {/* Form */}
-                <div className="px-8 pb-8">
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        {/* Email Input */}
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <Mail className="h-5 w-5 text-amber-500" />
-                            </div>
-                            <input
-                                type="email"
-                                placeholder="Email address"
-                                className="w-full pl-12 pr-4 py-4 border-2 border-amber-200 rounded-2xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 bg-white/70 focus:bg-white placeholder-gray-500"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ position: 'relative' }}>
+                        <Mail size={16} style={{
+                            position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+                            color: 'var(--color-text-muted)'
+                        }} />
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email address"
+                            className="input-field"
+                            style={{ paddingLeft: '2.5rem' }}
+                            required
+                        />
+                    </div>
 
-                        {/* Password Input */}
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <Lock className="h-5 w-5 text-amber-500" />
-                            </div>
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                placeholder="Password"
-                                className="w-full pl-12 pr-14 py-4 border-2 border-amber-200 rounded-2xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all duration-200 bg-white/70 focus:bg-white placeholder-gray-500"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                            <button
-                                type="button"
-                                className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                                onClick={() => setShowPassword(!showPassword)}
-                            >
-                                {showPassword ? (
-                                    <EyeOff className="h-5 w-5 text-amber-500 hover:text-amber-600" />
-                                ) : (
-                                    <Eye className="h-5 w-5 text-amber-500 hover:text-amber-600" />
-                                )}
-                            </button>
-                        </div>
+                    <div style={{ position: 'relative' }}>
+                        <Lock size={16} style={{
+                            position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+                            color: 'var(--color-text-muted)'
+                        }} />
+                        <input
+                            type={showPassword ? 'text' : 'password'}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            className="input-field"
+                            style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
+                            required
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            style={{
+                                position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: 'var(--color-text-muted)', padding: 0
+                            }}
+                        >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                    </div>
 
-                        {/* Error Message */}
-                        {error && (
-                            <div className="bg-rose-50 border-2 border-rose-200 rounded-2xl p-4">
-                                <p className="text-rose-600 text-sm font-medium">{error}</p>
-                            </div>
+                    <button
+                        type="submit"
+                        className="btn-primary"
+                        disabled={loading}
+                        style={{ width: '100%', padding: '0.85rem', marginTop: '0.5rem' }}
+                    >
+                        {loading ? (
+                            <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                        ) : (
+                            'Sign In'
                         )}
+                    </button>
+                </form>
 
-                        {/* Login Button */}
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-4 rounded-2xl font-semibold hover:from-amber-600 hover:to-orange-600 focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                        >
-                            {isLoading ? (
-                                <div className="flex items-center justify-center space-x-2">
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    <span>Signing in...</span>
-                                </div>
-                            ) : (
-                                "Sign In"
-                            )}
-                        </button>
-                    </form>
-
-                    {/* Divider */}
-                    <div className="flex items-center my-6">
-                        <div className="flex-1 border-t border-amber-200"></div>
-                        <span className="px-4 text-gray-500 text-sm">or</span>
-                        <div className="flex-1 border-t border-amber-200"></div>
-                    </div>
-
-                    {/* Google Login */}
-                    <div className="flex justify-center">
-                        <div className="w-full">
-                            <GoogleLogin
-                                onSuccess={handleLoginSuccess}
-                                onError={() => console.log("Login Failed")}
-                                theme="outline"
-                                size="large"
-                                width="100%"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Footer Links */}
-                    <div className="mt-8 text-center space-y-3">
-                        <button
-                            onClick={handleForgotPassword}
-                            className="text-amber-600 hover:text-amber-800 text-sm font-medium transition-colors duration-200"
-                        >
-                            Forgot password?
-                        </button>
-                        <div className="text-gray-600 text-sm">
-                            Don't have an account?{' '}
-                            <button
-                                onClick={() => {
-                                    onClose();
-                                    navigate('/signup');
-                                }}
-                                className="text-amber-600 hover:text-amber-800 font-medium transition-colors duration-200"
-                            >
-                                Create New Account
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                {/* Footer */}
+                <p style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '1.5rem' }}>
+                    Don't have an account?{' '}
+                    <Link to="/signup" style={{ color: 'var(--color-accent-primary)', textDecoration: 'none', fontWeight: 500 }}>
+                        Sign up
+                    </Link>
+                </p>
             </div>
+
+            <style>{`
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
         </div>
     );
 }
-
-export default Login;

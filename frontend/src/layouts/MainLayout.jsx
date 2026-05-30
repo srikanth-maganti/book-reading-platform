@@ -1,20 +1,15 @@
-// src/layouts/MainLayout.jsx
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { Outlet } from 'react-router-dom';
+import Navbar from '../components/Navbar.jsx';
+import Footer from '../components/Footer.jsx';
 
-function MainLayout() {
-  return (
-    <div className="d-flex flex-column min-vh-100">
-      <Navbar />
-      <main className="flex-fill">
-        <div className="content container-fluid">
-          <Outlet />
+export default function MainLayout() {
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <Navbar />
+            <main style={{ flex: 1 }}>
+                <Outlet />
+            </main>
+            <Footer />
         </div>
-      </main>
-      <Footer />
-    </div>
-  );
+    );
 }
-
-export default MainLayout;

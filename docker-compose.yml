@@ -1,0 +1,49 @@
+services:
+  mongodb:
+    image: mongo:7
+    container_name: pageturn-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: pageturn-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - JWT_SECRET=my_secret_key
+      - CLIENT_ID=281202687628-047r4063n08fjgs3okr9gbfj6pjpe0af.apps.googleusercontent.com
+      - PORT=3000
+      - BASE_URL=http://localhost:5173
+      - MONGO_URI=mongodb://mongodb:27017/bookreadingplatform
+      - MAX_FILE_SIZE=52428800
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - backend_uploads:/app/uploads
+      - ./recommendation_system:/app/recommendation_system
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: pageturn-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_GOOGLE_CLIENT_ID=281202687628-047r4063n08fjgs3okr9gbfj6pjpe0af.apps.googleusercontent.com
+      - VITE_API_BASE=http://localhost:3000/api
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  backend_uploads:

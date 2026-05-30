@@ -1,124 +1,112 @@
-import crypto from "crypto"
-import dotenv from "dotenv"
-import User from "../models/user.js"
+import User from "../models/user.js";
 import { ApiError } from "../utils/api_error.js";
-import { ApiResponse } from "../utils/api_response.js"
-import { sendmail,forgotmailcontentgenerator } from "../utils/mail.js"
-dotenv.config();
 
+// Register a new user
+export const registerUser = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
 
+        if (!name || !email || !password) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
 
-export const loginuser=async(req,res)=>{
-    let {email,password}=req.body;
-    
-    let user=await User.findOne({email});
-    if(!user)
-    {
-        throw new ApiError(400,"User not found with this email");
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "Email already registered" });
+        }
+
+        const user = await User.create({ name, email, password });
+        const token = await user.generateAccessToken();
+
+        res.status(201).json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                preferences: user.preferences,
+                readingStats: user.readingStats
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Registration failed" });
     }
-    
-    if(!user.verifyPassword(password))
-    {
-       throw new ApiError(400,"Invalid Password");
-    }
-    
-    const token=await user.generateAccessToken();
-    res.status(200).json(new ApiResponse(200,"User Login successful",{userId:user._id,name:user.name,email:user.email,token}));
 };
 
-export const signupuser=async (req, res) => {
-  
-  let { name, email, password } = req.body;
-  
-  let existingUser = await User.findOne({ email: email });
-  if (existingUser) {
-    throw new ApiError(400,"User already exists with this email");
-  }
+// Login
+export const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
 
-  let newUser = new User({
-    name,
-    email,
-    password,
-  });
-  
-  const token=await newUser.generateAccessToken();
-  await newUser.save();
-  res.status(200).json(new ApiResponse(200,"User Signup successful",{userId:newUser._id,name:newUser.name,email:newUser.email,token:token}));
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: "Email and password are required" });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+
+        const isPasswordValid = await user.verifyPassword(password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ success: false, message: "Invalid credentials" });
+        }
+
+        const token = await user.generateAccessToken();
+
+        res.json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                preferences: user.preferences,
+                readingStats: user.readingStats
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Login failed" });
+    }
 };
 
+// Get current user profile
+export const getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.userId).select('-password -passwordresettoken -passwordresetexpiry');
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
 
+        res.json({ success: true, user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Failed to fetch profile" });
+    }
+};
 
-export const getme=async(req,res)=>{
-  const {userId}=req.user;
-  if(!userId)
-  {
-    throw new ApiError(400,"User not Found");
-  }
+// Update user preferences
+export const updatePreferences = async (req, res) => {
+    try {
+        const { genres, readingTheme, fontSize } = req.body;
+        const updateData = {};
 
-  const user=await User.findById(userId).select("-password");
-  if(!user)
-  {
-    throw new ApiError(400,"User not Found");
-  }
+        if (genres) updateData['preferences.genres'] = genres;
+        if (readingTheme) updateData['preferences.readingTheme'] = readingTheme;
+        if (fontSize) updateData['preferences.fontSize'] = fontSize;
 
- return res.status(200).json(new ApiResponse(200,"User Details fetched Successfully",data=user));
-}
+        const user = await User.findByIdAndUpdate(
+            req.user.userId,
+            { $set: updateData },
+            { new: true }
+        ).select('-password -passwordresettoken -passwordresetexpiry');
 
-
-
-export const forgotpassword=async (req,res)=>{
-  //verify email
-  const {email}=req.body;
-  if(!email)
-  {
-    throw new ApiError(400,"Invalid Data");
-  }
-
-  //verify user exist or not
-  const user=await User.findOne({email});
-  if(!user)
-  {
-    throw new ApiError(400,"User doesnt exists");
-
-  }
-  //genearate a token
-  const token=crypto.randomBytes(32).toString('hex');
-  if(!token)
-  {
-    throw new ApiError(400,"unable to reset password");
-  }
-  user.passwordresettoken=token;
-  user.passwordresetexpiry=Date.now()+10*1000*60*60;
-
-  await user.save();
-
-
-  //send email
-  const url=`http://localhost:5173/resetpassword/${token}`;
-  const content=forgotmailcontentgenerator(user.name,url);
-  const subject="Verification email for reseting password";
-  await sendmail(subject,content)
- 
-  return res.status(200).json(new ApiResponse(200,"Verification code sent to your registered email"));
-
-}
-
-
-export const resetpassword=async(req,res)=>{
-  const {password,token}=req.body;
-  if(!token)
-  {
-    throw new ApiError(400,"Verification Failed");
-  }
-
-  const user=await User.findOne({passwordresettoken:token,passwordresetexpiry:{$gt:Date.now()}});
-  if(!user)
-  {
-    throw new ApiError(400,"Verification Failed");
-  }
-  user.password=password;
-  user.passwordresetexpiry = undefined;
-  user.passwordresettoken = undefined;
-  await user.save();
-  res.status(200).json(new ApiResponse(200,"Password reset successful"));
-}
+        res.json({ success: true, user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: "Failed to update preferences" });
+    }
+};

@@ -1,12 +1,12 @@
-import express from "express"
-import {asyncHandler} from "../utils/async_handler.js";
-import { validatebook } from "../middleware/validate_book.js";
-import { allbooks,showbook,trendingbooks,addbook } from "../controllers/books.controllers.js";
-const bookrouter=express.Router();
+import { Router } from 'express';
+import { searchBooks, getBookById, getTrendingBooks, proxyBookContent } from '../controllers/books.controllers.js';
 
-bookrouter.get("/",asyncHandler(allbooks));
-bookrouter.get("/show/:id",asyncHandler(showbook));
-bookrouter.get("/trending",asyncHandler(trendingbooks));
-bookrouter.post("/",validatebook,asyncHandler(addbook));
+const router = Router();
 
-export default bookrouter;
+// Routes are public, no auth required for browsing books
+router.get('/content', proxyBookContent);
+router.get('/', searchBooks);
+router.get('/trending', getTrendingBooks);
+router.get('/:id', getBookById);
+
+export default router;

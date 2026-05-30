@@ -1,49 +1,127 @@
-import Book from "../models/book.js"
-import {ApiError} from "../utils/api_error.js";
+import Book from '../models/book.js';
 
-export const allbooks=async (req, res) => {
-    const { category, search } = req.query;
-    let data=null;
-    if (search) {
-        data = await Book.find({
-            $or: [
-                { Title: { $regex: search, $options: "i" } },
-                { Author: { $regex: search, $options: "i" } },
-                { Category: { $regex: search, $options: "i" } }
-            ]
+// Search and filter books
+export const searchBooks = async (req, res, next) => {
+    try {
+        const { search, topic, page = 1, limit = 32 } = req.query;
+        
+        let query = {};
+        
+        // Full text search
+        if (search) {
+            query.$text = { $search: search };
+        }
+        
+        // Topic filter
+        if (topic && topic !== 'all') {
+            // Case-insensitive regex match against subjects or bookshelves
+            query.$or = [
+                { subjects: { $regex: topic, $options: 'i' } },
+                { bookshelves: { $regex: topic, $options: 'i' } }
+            ];
+        }
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        
+        const books = await Book.find(query)
+            .sort(search ? { score: { $meta: "textScore" } } : { download_count: -1 })
+            .skip(skip)
+            .limit(parseInt(limit));
+            
+        const totalCount = await Book.countDocuments(query);
+        const hasNext = (skip + books.length) < totalCount;
+        
+        // Map to Gutendex format so frontend doesn't break
+        const formattedBooks = books.map(book => ({
+            id: book.gutendexId,
+            title: book.title,
+            authors: book.authors,
+            subjects: book.subjects,
+            bookshelves: book.bookshelves,
+            languages: book.languages,
+            formats: Object.fromEntries(book.formats),
+            download_count: book.download_count
+        }));
+
+        res.json({
+            count: totalCount,
+            next: hasNext ? `/api/books?page=${parseInt(page) + 1}&limit=${limit}&search=${search || ''}&topic=${topic || ''}` : null,
+            previous: parseInt(page) > 1 ? `/api/books?page=${parseInt(page) - 1}&limit=${limit}&search=${search || ''}&topic=${topic || ''}` : null,
+            results: formattedBooks
         });
-    } else if (category && category !== "All") {
-        data = await Book.find({ Category: category });
-    } else {
-        data = await Book.find({});
+    } catch (err) {
+        next(err);
     }
+};
 
-    if (!data || data.length === 0) {
-        throw new ApiError(404,"No Books Found");
+// Get single book by ID
+export const getBookById = async (req, res, next) => {
+    try {
+        const book = await Book.findOne({ gutendexId: req.params.id });
+        if (!book) {
+            return res.status(404).json({ success: false, message: 'Book not found in local database' });
+        }
+        
+        // Format to Gutendex style
+        const formattedBook = {
+            id: book.gutendexId,
+            title: book.title,
+            authors: book.authors,
+            subjects: book.subjects,
+            bookshelves: book.bookshelves,
+            languages: book.languages,
+            formats: Object.fromEntries(book.formats),
+            download_count: book.download_count
+        };
+        
+        res.json(formattedBook);
+    } catch (err) {
+        next(err);
     }
-    
+};
 
-    res.status(200).json(data);
-}
+import axios from 'axios';
 
-export const showbook=async(req,res)=>{
-    let {id}=req.params;
-    let [data]=await Book.find({_id:id});
-    
-    if(!data)
-    {
-        throw new ApiError(400,"Book Not Found");
+// Get trending/popular books
+export const getTrendingBooks = async (req, res, next) => {
+    try {
+        const books = await Book.find({})
+            .sort({ download_count: -1 })
+            .limit(10);
+            
+        const formattedBooks = books.map(book => ({
+            id: book.gutendexId,
+            title: book.title,
+            authors: book.authors,
+            subjects: book.subjects,
+            formats: Object.fromEntries(book.formats),
+            download_count: book.download_count
+        }));
+        
+        res.json({
+            count: books.length,
+            results: formattedBooks
+        });
+    } catch (err) {
+        next(err);
     }
-    
-    res.status(200).json(data);
-}
+};
 
-export const trendingbooks=async(req,res)=>{
-    res.status(200).json([]);
-}
-
-export const addbook=async(req,res)=>{
-    let newbook=new Book(req.body.book);
-    await newbook.save();
-    res.status(200).json({message:"book added successfully",success:true})
-}
+// Proxy content from Gutenberg to avoid CORS
+export const proxyBookContent = async (req, res, next) => {
+    try {
+        const { url } = req.query;
+        if (!url) return res.status(400).json({ success: false, message: 'URL is required' });
+        
+        const response = await axios.get(url, { responseType: 'stream' });
+        
+        if (response.headers['content-type']) {
+            res.setHeader('Content-Type', response.headers['content-type']);
+        }
+        
+        response.data.pipe(res);
+    } catch (err) {
+        console.error('Proxy error:', err.message);
+        res.status(500).json({ success: false, message: 'Failed to proxy content' });
+    }
+};

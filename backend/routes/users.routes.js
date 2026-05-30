@@ -1,11 +1,12 @@
-import express from "express"
-import {asyncHandler} from "../utils/async_handler.js";
-import { forgotpassword, loginuser,resetpassword,signupuser } from "../controllers/users.controllers.js";
-const userrouter=express.Router();
+import express from "express";
+import { registerUser, loginUser, getProfile, updatePreferences } from "../controllers/users.controllers.js";
+import { authMiddleware } from "../middleware/auth.js";
 
-userrouter.post("/login",asyncHandler(loginuser));
-userrouter.post("/signup",asyncHandler(signupuser));
-userrouter.post("/forgotpassword",asyncHandler(forgotpassword));
-userrouter.post("/resetpassword",asyncHandler(resetpassword));
+const router = express.Router();
 
-export default userrouter;
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+router.get("/profile", authMiddleware, getProfile);
+router.put("/preferences", authMiddleware, updatePreferences);
+
+export default router;
